@@ -38,7 +38,33 @@ void I2C_READ(uint8_t dev_id, uint8_t addr, uint8_t* data) {
 
 
 void I2C_WRITE(uint8_t dev_id, uint8_t addr, uint8_t* data){
-  __NOP();
+  volatile uint8_t dummy = 0;
+
+  I2C1->CR1 |= I2C_CR1_START;                           // S
+  while((I2C1->SR1 & I2C_SR1_SB) != I2C_SR1_SB);        // EV5
+  I2C1->DR = I2C_DR_DR & (dev_id & ~((uint8_t)1U));     // Address
+  while((I2C1->SR1 & I2C_SR1_AF) == I2C_SR1_AF);        // A
+  while((I2C1->SR1 & I2C_SR1_ADDR) != I2C_SR1_ADDR);    // EV6 
+  dummy = I2C1->SR2;                                    // EV6
+
+  // #######################################################################
+  while((I2C1->SR1 & I2C_SR1_TXE) != I2C_SR1_TXE);      // EV8_1 
+  I2C1->DR = I2C_DR_DR & addr;                          // EV8_1, EV8, Data1
+  while((I2C1->SR1 & I2C_SR1_AF) == I2C_SR1_AF);        // A
+
+  // #######################################################################
+
+  while((I2C1->SR1 & I2C_SR1_TXE) != I2C_SR1_TXE);      // EV8
+  I2C1->DR = I2C_DR_DR & (*data);                       // EV8_1, EV8, Data2
+  while((I2C1->SR1 & I2C_SR1_TXE) != I2C_SR1_TXE);      // EV8_1 
+  while((I2C1->SR1 & I2C_SR1_AF) == I2C_SR1_AF);        // A
+
+  // #######################################################################
+
+  I2C1->CR1 |= I2C_CR1_STOP;                            // P
+
+  // #######################################################################
+
 }
   
 void I2C_INIT(void) {
