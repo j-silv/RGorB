@@ -14,8 +14,8 @@
 
 #include "stm32f4xx.h"
 #include <stdint.h>
-
-void i2c(void);
+#include "bno055.h"
+#include "i2c.h"
 
 
 volatile uint32_t msTicks;                            /* counts 1ms timeTicks */
@@ -86,14 +86,35 @@ int main (void) {
   RCC->AHB1ENR |= RCC_AHB1ENR_GPIOAEN; // enable clock for GPIOA
   GPIOA->MODER |= GPIO_MODER_MODER5_0;  // set as GPIO output
 
+  //##############################
+  // needed to reset BNO
+  GPIOA->MODER |= GPIO_MODER_MODER6_0;
+  GPIOA->ODR &= ~GPIO_ODR_OD6;
+  Delay(500);
+  GPIOA->ODR |= GPIO_ODR_OD6;
+  Delay(500);
+  //##############################
+
+  I2C_INIT();
+
+  volatile uint8_t rdata = 0xFA;
+  I2C_READ(DEV_ID, CHIP_ID_OFFSET, &rdata);
+
+  if (rdata == CHIP_ID_VALUE) {
+    GPIOA->ODR |= GPIO_ODR_OD5; // turn on GPIOA_P5 (LED)
+  }
+  else {
+    GPIOA->ODR &= ~GPIO_ODR_OD5; // turn off GPIOA_P5 (LED)
+  }
 
   while(1){
-      i2c();
 
-      GPIOA->ODR |= GPIO_ODR_OD5; // turn on GPIOA_P5 (LED)
-      Delay(2000);
-      GPIOA->ODR &= ~GPIO_ODR_OD5; // turn off GPIOA_P5 (LED)
-      Delay(200);
+
+
+      //GPIOA->ODR |= GPIO_ODR_OD5; // turn on GPIOA_P5 (LED)
+      //Delay(200);
+      //GPIOA->ODR &= ~GPIO_ODR_OD5; // turn off GPIOA_P5 (LED)
+      //Delay(200);
   }
 }
 
