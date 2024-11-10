@@ -96,39 +96,16 @@ int main (void) {
   //##############################
 
   I2C_INIT();
-
-  volatile uint8_t rdata = 0xFA;
-  // I2C_READ(DEV_ID, CHIP_ID_OFFSET, &rdata);
-
-  if (rdata == CHIP_ID_VALUE) {
+  uint8_t return_code = init_bno055();
+  if (return_code == NO_SYSTEM_ERROR) {
     GPIOA->ODR |= GPIO_ODR_OD5; // turn on GPIOA_P5 (LED)
   }
-  else {
-    GPIOA->ODR &= ~GPIO_ODR_OD5; // turn off GPIOA_P5 (LED)
-  }
-
-  uint8_t page = 0x01;
-  I2C_WRITE(DEV_ID, PAGE_ID_OFFSET, &page);
-
-  I2C_READ(DEV_ID, PAGE_ID_OFFSET, &rdata);
-
-
-  if (rdata == 0x01) {
-    GPIOA->ODR |= GPIO_ODR_OD5; // turn on GPIOA_P5 (LED)
-  }
-  else {
-    GPIOA->ODR &= ~GPIO_ODR_OD5; // turn off GPIOA_P5 (LED)
-  }
-
-
+  
+  int temp =  0;
+  double acc = 0;
   while(1){
-
-
-
-      //GPIOA->ODR |= GPIO_ODR_OD5; // turn on GPIOA_P5 (LED)
-      //Delay(200);
-      //GPIOA->ODR &= ~GPIO_ODR_OD5; // turn off GPIOA_P5 (LED)
-      //Delay(200);
+      temp = convert_temp(get_temp());
+      acc = convert_acc(get_acc_x_data());
   }
 }
 

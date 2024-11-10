@@ -140,9 +140,9 @@ void set_operation_mode(uint8_t operation_mode) {
 	I2C_WRITE(DEV_ID, OPR_MODE_OFFSET, &operation_mode);
 
 	if (operation_mode == CONFIG_OP_MODE) {
-//		TODO: wait 19 ms;
+		Delay(19);
 	} else {
-//		TODO: wait 7ms);
+		Delay(7);
 	}
 }
 //============================================
@@ -539,7 +539,7 @@ uint8_t run_bist() {
 	handle_page(PAGE_0);
 	I2C_WRITE(DEV_ID, SYS_TRIGGER_OFFSET, &wdata);  // trigger BIST
 
-	// TODO: wait 400ms
+	Delay(400);
 
 	I2C_READ(DEV_ID, SYS_ERR_OFFSET, &rdata);             // get BIST overall status
 
