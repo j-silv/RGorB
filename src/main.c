@@ -5,6 +5,7 @@
 #include "ws2812b.h"
 
 volatile uint32_t msTicks; /* counts 1ms timeTicks from SysTickHandler */  
+#define NUM_PIXELS 4
 
 void SysTick_Handler(void) {
   msTicks++;
@@ -25,14 +26,27 @@ int main (void) {
 
   init_ws2812b();
 
-  while(1) {
-    GPIOA->ODR |= GPIO_ODR_OD5;
-    while(!(TIM1->SR & TIM_SR_UIF)); /* Loop until the update event flag is set */
-    TIM1->SR = 0; // clear update event flag
+  // declare 4 pixels -> testing
+  pixel_typedef pixel[NUM_PIXELS] = {0,0,0};
+  pixel[0].red = 100;
+  pixel[1].green = 100;
+  pixel[2].blue = 100;
 
-    GPIOA->ODR &= ~GPIO_ODR_OD5; 
-    while(!(TIM1->SR & TIM_SR_UIF)); /* Loop until the update event flag is set */
-    TIM1->SR = 0; // clear update event flag
+  write_ws2812b(&pixel, NUM_PIXELS);
+
+
+
+  while(1) {
+    // GPIOA->ODR |= GPIO_ODR_OD5;
+    // while(!(TIM1->SR & TIM_SR_UIF)); /* Loop until the update event flag is set */
+    // TIM1->SR = 0; // clear update event flag
+
+    // GPIOA->ODR &= ~GPIO_ODR_OD5; 
+    // while(!(TIM1->SR & TIM_SR_UIF)); /* Loop until the update event flag is set */
+    // TIM1->SR = 0; // clear update event flag
+
+    write_ws2812b(&pixel, NUM_PIXELS);
+    Delay(500);
   }
 }
 
