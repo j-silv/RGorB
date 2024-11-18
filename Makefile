@@ -21,6 +21,7 @@
 # it's fine I suppose.
 ####################################################################################################
 
+.EXTRA_PREREQS := $(abspath $(lastword $(MAKEFILE_LIST))) # so that we recompile when this makefile changes
 BUILD_DIR = ./build
 SRC_DIRS = ./src ./config
 INC_DIRS = ./include
@@ -45,8 +46,10 @@ SRCS := $(subst $(SRC_IGNORE),,$(SRCS))
 
 OBJS := $(addsuffix .o,$(basename $(SRCS)))
 OBJS := $(addprefix $(BUILD_DIR)/,$(notdir $(OBJS)))
+DEPS := $(OBJS:.o=.d) # Dependency files for headers
 
-CFLAGS ?= -c -O0 -mcpu=$(ARCH) -mthumb -Wall -DSTM32F446xx -g3 # by default its -g2, so we can't get macro processing defintions
+# by default, -g is actually -g2, so we can't get macro processing defintions
+CFLAGS ?= -c -O0 -mcpu=$(ARCH) -mthumb -Wall -DSTM32F446xx -g3 -MMD -MP
 LDFLAGS ?= -T$(LINKER) -mcpu=$(ARCH) -mthumb -Wall -Wl,-Map=$@.map --specs=nano.specs --specs=nosys.specs
 
 ####################################################################################################
@@ -81,13 +84,16 @@ $(BUILD_DIR)/$(TARGET_LINK): $(OBJS)
 	
 
 $(BUILD_DIR)/%.o: ./src/%.c
-	mkdir -p $(BUILD_DIR)
+	@mkdir -p $(BUILD_DIR)
 	$(CC) $(CFLAGS) $(INC_FLAGS) -c $< -o $@
 
 $(BUILD_DIR)/%.o: ./config/%.s
-	mkdir -p $(BUILD_DIR)
+	@mkdir -p $(BUILD_DIR)
 	$(CC) $(CFLAGS) $(INC_FLAGS) -c $< -o $@
 
 ####################################################################################################
+
+# Include dependency files if they exist
+-include $(DEPS)
 
 .PHONY: all build link flash clean
