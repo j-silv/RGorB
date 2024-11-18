@@ -11,7 +11,7 @@ void init_ws2812b() {
 
     GPIOB->OTYPER |= GPIO_OTYPER_OT8;       // set as push pull
     RCC->APB2ENR |= RCC_APB2ENR_TIM1EN;     // enable the clock that goes to the periphal
-    volatile uint32_t dummy = RCC->APB2ENR; // errata 2.2.7 -> need to wait after peripheral clock enabling
+    (void)(volatile uint8_t)RCC->APB2ENR;   // errata 2.2.7 -> need to wait after peripheral clock enabling
 
     TIM1->ARR = RESET_PULSE;   // we will stay low until sending data out
     TIM1->CCR1 = 0;            // OC1REF = TIM1_CNT < TIM1_CCR1 ? 1 : 0

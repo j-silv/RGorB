@@ -10,6 +10,7 @@
 
 #include <stdint.h>
 #include "i2c.h"
+void Delay (uint32_t dlyTicks);
 
 //============================================
 // PAGE 0 REGISTERS
