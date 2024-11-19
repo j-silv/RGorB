@@ -32,7 +32,8 @@ TOOL_PATH = ~/files/coding/tools/arm-gnu-toolchain-13.3.rel1-x86_64-arm-none-eab
 CC = ${TOOL_PATH}/arm-none-eabi-gcc
 OC = ${TOOL_PATH}/arm-none-eabi-objcopy
 NM = ${TOOL_PATH}/arm-none-eabi-nm
-DB = ${TOOL_PATH}/arm-none-eabi-nm
+DB = ${TOOL_PATH}/arm-none-eabi-gdb
+SZ = ${TOOL_PATH}/arm-none-eabi-size
 FLASHER = /usr/bin/st-flash
 ARCH = cortex-m4
 #SRC_IGNORE = ./src/system_stm32f4xx.c
@@ -50,7 +51,7 @@ DEPS := $(OBJS:.o=.d) # Dependency files for headers
 
 # by default, -g is actually -g2, so we can't get macro processing defintions
 CFLAGS ?= -c -O0 -mcpu=$(ARCH) -mthumb -Wall -DSTM32F446xx -g3 -MMD -MP
-LDFLAGS ?= -T$(LINKER) -mcpu=$(ARCH) -mthumb -Wall -Wl,-Map=$@.map --specs=nano.specs --specs=nosys.specs
+LDFLAGS ?= -T$(LINKER) -mcpu=$(ARCH) -mthumb -Wall -Wl,-Map=$@.map -specs=nosys.specs -Wl,--gc-sections  
 
 ####################################################################################################
 
@@ -81,6 +82,7 @@ $(BUILD_DIR)/$(TARGET_FLASH): $(BUILD_DIR)/$(TARGET_LINK)
 $(BUILD_DIR)/$(TARGET_LINK): $(OBJS)
 	$(CC) $^ $(LDFLAGS) -o $@
 	$(NM) $@ -S -n -l > $@.nm
+	$(SZ) $@ > $@.size
 	
 
 $(BUILD_DIR)/%.o: ./src/%.c
