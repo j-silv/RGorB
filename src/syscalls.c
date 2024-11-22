@@ -1,3 +1,6 @@
+#include "uart.h"
+#include <stdint.h>
+
 // "Stub" functions so that the ARM linker does not give a warning
 int _close(int fd) {
   (void) fd;
@@ -11,6 +14,7 @@ int _lseek(int fd, int ptr, int dir) {
 
 int _write(int fd, char *ptr, int len) {
   (void) fd, (void) ptr, (void) len;
+  if (fd == 1) UART_WRITE((uint8_t *)ptr, (uint8_t) len);
   return -1;
 }
 
