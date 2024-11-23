@@ -43,7 +43,7 @@ void output_color(uint8_t color) {
     }
 }
 
-void write_ws2812b(pixel_typedef *pixels, uint8_t num_pixels){
+void write_ws2812b(pixel_typedef *pixels, uint16_t num_pixels){
 
     TIM1->ARR = PERIOD;
     TIM1->CCR1 = 0;

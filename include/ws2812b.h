@@ -20,7 +20,7 @@ typedef struct {
     uint8_t blue;
 } pixel_typedef;
 
-void write_ws2812b(pixel_typedef *pixel, uint8_t num_pixels);
+void write_ws2812b(pixel_typedef *pixel, uint16_t num_pixels);
 
 
 #endif
