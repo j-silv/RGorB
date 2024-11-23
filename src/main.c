@@ -1,8 +1,10 @@
 #include "stm32f4xx.h"
 #include <stdint.h>
 #include <stdio.h>
+#include <stdlib.h>
 #include "bno055.h"
 #include "i2c.h"
+#include "modes.h"
 #include "ws2812b.h"
 #include "clock.h"
 #include "uart.h"
@@ -23,25 +25,6 @@ void Delay (uint32_t dlyTicks) {
 
   curTicks = msTicks;
   while ((msTicks - curTicks) < dlyTicks) { __NOP(); }
-}
-
-float clamp(float min, float max, float val){
-  if(val > max) {
-    return max;
-  }
-  else if (val < min) {
-    return min;
-  }
-  else {
-    return val;
-  }
-}
-
-uint8_t map(float min, float max, float offset, float val) {
-  float temp = 0; 
-  temp = clamp(min, max, val);
-  temp = (((temp - min)/(max - min))*(MAX_LED_VAL-offset)) + offset;
-  return temp;
 }
 
 int main (void) {
@@ -84,57 +67,9 @@ int main (void) {
     GPIOA->ODR |= GPIO_ODR_OD5; // turn on GPIOA_P5 (LED)
   }
 
-  for(int i = 0; i<NUM_PIXELS; i++) {
-    uint8_t val = 0;
-    if (i == 3) {
-      val = 125;
-    }
-    pixel[i].red = 0;
-    pixel[i].green = val;
-    pixel[i].blue = val;
-  }
-  write_ws2812b(pixel, NUM_PIXELS);
 
-  int temp =  0x80;
-  double acc = 0;
-  uint8_t map_acc = 0;
-  float clamp_acc = 0;
   while(1){
-      temp = convert_temp(get_temp());
-      acc = convert_acc(get_acc_x_data());
-      map_acc = map(MIN_ACC, MAX_ACC, OFFSET, acc);
-      clamp_acc = clamp(MIN_ACC, MAX_ACC, acc);
-
-      printf("temp: %d, acc: %.5f clamp(acc): %.5f map(acc): %d\n", temp, acc, clamp_acc, map_acc);
-      // Delay(100);
-      for(int i = 0; i<NUM_PIXELS; i++) {
-        // pixel[i].red = map_acc;
-        // pixel[i].green = map_acc;
-        // pixel[i].blue = map_acc;
-        pixel[i].red = map(MIN_ACC, MAX_ACC, OFFSET, convert_acc(get_acc_x_data()));
-        pixel[i].green = map(MIN_ACC, MAX_ACC, OFFSET, convert_acc(get_acc_y_data()));
-        pixel[i].blue = map(MIN_ACC, MAX_ACC, OFFSET, convert_acc(get_acc_z_data()));
-      }
+      mode_2(pixel, NUM_PIXELS);
       write_ws2812b(pixel, NUM_PIXELS);
   }
 }
-
-
-
-
-
-  // double acc;
-
-  // uint8_t scaled_acc;
-
-  // while(1) {
-  //   acc = convert_acc(get_acc_x_data());
-  //   scaled_acc = 10*(acc + 20);
-  //   pixel[3].blue = scaled_acc;
-  //   write_ws2812b(pixel, NUM_PIXELS);
-  // }
-
-
-
-
-
