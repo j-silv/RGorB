@@ -14,10 +14,8 @@ jobs:
 
     steps:
     - uses: actions/checkout@v4
-    - name: GNU Arm Embedded Toolchain
-      uses: ryanwinter/arm-none-eabi-gcc@master
-      with:
-        release: '10.3-2021.10'
+    - name: Download GNU Arm Embedded Toolchain
+      run: bash <(curl -s https://raw.githubusercontent.com/mpekurin/arm-gnu-toolchain-install/main/arm-gnu-toolchain-install.sh) -t arm-none-eabi -l
     - name: make build
       run: make build TOOL_PATH=""
     - name: make link
