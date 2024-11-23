@@ -19,6 +19,6 @@ jobs:
       with:
         release: '10.3-2021.10'
     - name: make build
-      run: make build TOOLPATH=""
+      run: make build TOOL_PATH=""
     - name: make link
-      run: make link TOOLPATH=""
+      run: make link TOOL_PATH=""
