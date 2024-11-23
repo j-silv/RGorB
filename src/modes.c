@@ -74,8 +74,8 @@ mode_1(pixel_typedef *pixels, uint16_t num_pixels){
 }
 
 //===========================================
-// mode_1()
-//   impulse mode that lights pixels based on
+// mode_2()
+//   mode that lights pixels based on
 //   the acceleration vector
 //===========================================
 mode_2(pixel_typedef *pixels, uint16_t num_pixels){
@@ -107,8 +107,8 @@ mode_3(pixel_typedef *pixels, uint16_t num_pixels){
     };
 
     static uint8_t r_val = 0xFF;
-    static uint8_t g_val = 0;
-    static uint8_t b_val = 0;
+    static uint8_t g_val = 0x00;
+    static uint8_t b_val = 0x00;
 
     static enum HSV_STATE myVar = RED;
 
@@ -175,3 +175,77 @@ mode_3(pixel_typedef *pixels, uint16_t num_pixels){
         pixels[i].blue =  b_val;
     }
 }
+
+
+
+//===========================================
+// mode_4()
+//   true North mode
+//     lights up golden when north is faced
+//===========================================
+mode_4(pixel_typedef *pixels, uint16_t num_pixels){
+    uint8_t r_val = 0x00;
+    uint8_t g_val = 0x00;
+    uint8_t b_val = 0x00;
+
+    uint16_t is_golden;
+
+    double x_angle;
+    double y_angle;
+    double z_angle;
+
+    double range = 5.0;  // have to be within +- 5 degrees
+
+    x_angle = convert_euler(get_euler_x_data());
+    y_angle = convert_euler(get_euler_y_data());
+    z_angle = convert_euler(get_euler_z_data());
+
+
+    if      ((x_angle < range) || (x_angle > 360-range)) {
+       is_golden = 1;
+    }
+    else if ((y_angle < range) || (y_angle > 360-range)) {
+       is_golden = 1;
+    }
+    else if ((z_angle < range) || (z_angle > 360-range)) {
+       is_golden = 1;
+    }
+    else {
+        is_golden = 0;
+    }
+
+    if (is_golden) {
+    	r_val = 0xFF;
+    	g_val = 0xFF;
+    	b_val = 0x00;
+    } else {
+    	r_val = 0x00;
+    	g_val = 0x00;
+    	b_val = 0x00;
+    }
+
+    for(int i = 0; i<num_pixels; i++) {
+        pixels[i].red =   r_val;
+        pixels[i].green = g_val;
+        pixels[i].blue =  b_val;
+    }
+}
+
+
+//===========================================
+// mode_5()
+//   position mode
+//     lights up based on heading
+//===========================================
+mode_5(pixel_typedef *pixels, uint16_t num_pixels){
+    uint8_t r_val = map(convert_euler(get_euler_x_data()), 0, 360, 0);
+    uint8_t g_val = map(convert_euler(get_euler_y_data()), 0, 360, 0);
+    uint8_t b_val = map(convert_euler(get_euler_z_data()), 0, 360, 0);
+
+    for(int i = 0; i<num_pixels; i++) {
+        pixels[i].red =   r_val;
+        pixels[i].green = g_val;
+        pixels[i].blue =  b_val;
+    }
+}
+
