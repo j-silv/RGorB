@@ -1,4 +1,4 @@
-![Build status](https://github.com/github/docs/actions/workflows/main.yml/badge.svg?event=push)
+![GitHub Workflow Status](https://img.shields.io/github/workflow/status/j-silv/RGorB/CI?label=build)
 
 # Overview
 
