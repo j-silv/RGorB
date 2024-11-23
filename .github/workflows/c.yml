@@ -1,0 +1,20 @@
+name: C CI
+
+on:
+  push:
+    branches: [ "master" ]
+  pull_request:
+    branches: [ "master" ]
+  workflow_dispatch:
+
+jobs:
+  build:
+
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v4
+    - name: GNU Arm Embedded Toolchain
+      uses: ryanwinter/arm-none-eabi-gcc@v2.0.4
+    - name: make build
+      run: make build CC=arm-none-eabi-gcc
