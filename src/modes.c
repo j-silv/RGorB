@@ -49,8 +49,9 @@ float cutoff(float val, float min){
 //   ----------------------  * (output_max - output_min) + output_min
 //    input_max - input_min
 //===========================================
-uint8_t map(float val, float input_min, float input_max, float output_min, float output_max=0xFF) {
+uint8_t map(float val, float input_min, float input_max, float output_min) {
   float scaled_val = 0;
+  float output_max = 0xFF;
   scaled_val = clamp(val, input_min, input_max);
   scaled_val = (((scaled_val - input_min)/(input_max - input_min))*(output_max-output_min)) + output_min;
   return scaled_val;
