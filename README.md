@@ -1,3 +1,5 @@
+![Build status](https://github.com/github/docs/actions/workflows/main.yml/badge.svg)
+
 # Overview
 
 **RG**or**B** (*Red Green or Blue*) is an embedded systems project which maps Inertial Measurement Unit (IMU) data to an LED color space. The RGB colors are then displayed on LED strips (NeoPixels) which are enclosed in a 3D-printed translucent sphere (an orb).
