@@ -62,7 +62,7 @@ uint8_t map(float val, float input_min, float input_max, float output_min) {
 //   impulse mode that lights pixels based on
 //   the magnitude of the linear acceleration
 //===========================================
-mode_1(pixel_typedef *pixels, uint16_t num_pixels){
+void mode_1(pixel_typedef *pixels, uint16_t num_pixels){
     uint8_t r_val = map(abs(cutoff(convert_lin(get_linear_acc_x_data()), 0x8)), 0, 20, 0);
     uint8_t g_val = map(abs(cutoff(convert_lin(get_linear_acc_y_data()), 0x8)), 0, 20, 0);
     uint8_t b_val = map(abs(cutoff(convert_lin(get_linear_acc_x_data()), 0x8)), 0, 20, 0);
@@ -79,7 +79,7 @@ mode_1(pixel_typedef *pixels, uint16_t num_pixels){
 //   mode that lights pixels based on
 //   the acceleration vector
 //===========================================
-mode_2(pixel_typedef *pixels, uint16_t num_pixels){
+void mode_2(pixel_typedef *pixels, uint16_t num_pixels){
     uint8_t r_val = map(convert_acc(get_acc_x_data()), -10, 10, 0);
     uint8_t g_val = map(convert_acc(get_acc_y_data()), -10, 10, 0);
     uint8_t b_val = map(convert_acc(get_acc_z_data()), -10, 10, 0);
@@ -97,30 +97,30 @@ mode_2(pixel_typedef *pixels, uint16_t num_pixels){
 //     Red1 -> Yellow -> Green -> Cyan -> Blue
 //     - > Magenta -> Red2
 //===========================================
-mode_3(pixel_typedef *pixels, uint16_t num_pixels){
-    enum RBG_State {
-      RED,
-      YELLOW,
-      GREEN,
-      CYAN,
-      BLUE,
-      MAGENTA,
-    };
+void mode_3(pixel_typedef *pixels, uint16_t num_pixels){
+	enum HSV_STATE {
+	  RED,
+	  YELLOW,
+	  GREEN,
+	  CYAN,
+	  BLUE,
+	  MAGENTA,
+	};
 
     static uint8_t r_val = 0xFF;
     static uint8_t g_val = 0x00;
     static uint8_t b_val = 0x00;
 
-    static enum HSV_STATE myVar = RED;
+    static enum HSV_STATE state = RED;
 
-    switch (HSV_STATE) {
+    switch (state) {
     	case RED:
     	    // output value logic
     		g_val++;
 
     	    // state transition logic
     		if (g_val == 0xFF) {
-    			HSV_STATE = YELLOW;
+    			state = YELLOW;
     		}
     		break;
     	case YELLOW:
@@ -129,7 +129,7 @@ mode_3(pixel_typedef *pixels, uint16_t num_pixels){
 
     	    // state transition logic
     		if (r_val == 0x00) {
-    			HSV_STATE = GREEN;
+    			state = GREEN;
     		}
     		break;
     	case GREEN:
@@ -138,7 +138,7 @@ mode_3(pixel_typedef *pixels, uint16_t num_pixels){
 
     	    // state transition logic
     		if (b_val == 0xFF) {
-    			HSV_STATE = CYAN;
+    			state = CYAN;
     		}
     		break;
     	case CYAN:
@@ -147,7 +147,7 @@ mode_3(pixel_typedef *pixels, uint16_t num_pixels){
 
     	    // state transition logic
     		if (g_val == 0x00) {
-    			HSV_STATE = BLUE;
+    			state = BLUE;
     		}
     		break;
     	case BLUE:
@@ -156,7 +156,7 @@ mode_3(pixel_typedef *pixels, uint16_t num_pixels){
 
     	    // state transition logic
     		if (r_val == 0xFF) {
-    			HSV_STATE = MAGENTA;
+    			state = MAGENTA;
     		}
     		break;
     	case MAGENTA:
@@ -165,7 +165,7 @@ mode_3(pixel_typedef *pixels, uint16_t num_pixels){
 
     	    // state transition logic
     		if (b_val == 0x00) {
-    			HSV_STATE = RED;
+    			state = RED;
     		}
     		break;
     }
@@ -184,7 +184,7 @@ mode_3(pixel_typedef *pixels, uint16_t num_pixels){
 //   true North mode
 //     lights up golden when north is faced
 //===========================================
-mode_4(pixel_typedef *pixels, uint16_t num_pixels){
+void mode_4(pixel_typedef *pixels, uint16_t num_pixels) {
     uint8_t r_val = 0x00;
     uint8_t g_val = 0x00;
     uint8_t b_val = 0x00;
@@ -238,7 +238,7 @@ mode_4(pixel_typedef *pixels, uint16_t num_pixels){
 //   position mode
 //     lights up based on heading
 //===========================================
-mode_5(pixel_typedef *pixels, uint16_t num_pixels){
+void mode_5(pixel_typedef *pixels, uint16_t num_pixels){
     uint8_t r_val = map(convert_euler(get_euler_x_data()), 0, 360, 0);
     uint8_t g_val = map(convert_euler(get_euler_y_data()), 0, 360, 0);
     uint8_t b_val = map(convert_euler(get_euler_z_data()), 0, 360, 0);
@@ -249,4 +249,3 @@ mode_5(pixel_typedef *pixels, uint16_t num_pixels){
         pixels[i].blue =  b_val;
     }
 }
-
