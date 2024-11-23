@@ -31,6 +31,12 @@ float cutoff(float val, float min);
 //   ----------------------  * (output_max - output_min) + output_min
 //    input_max - input_min
 //===========================================
-uint8_t map(float val, float input_min, float input_max, float output_min, float output_max=0xFF);
+uint8_t map(float val, float input_min, float input_max, float output_min);
+
+void mode_1(pixel_typedef *pixels, uint16_t num_pixels);
+void mode_2(pixel_typedef *pixels, uint16_t num_pixels);
+void mode_3(pixel_typedef *pixels, uint16_t num_pixels);
+void mode_4(pixel_typedef *pixels, uint16_t num_pixels);
+void mode_5(pixel_typedef *pixels, uint16_t num_pixels);
 
 #endif /* INC_MODES_H_ */
