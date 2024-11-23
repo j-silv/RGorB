@@ -1,6 +1,8 @@
 #ifndef INC_MODES_H_
 #define INC_MODES_H_
 
+#include "ws2812b.h"
+
 //===========================================
 // clamp()
 //   takes a value and performs the following
