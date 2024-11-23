@@ -15,6 +15,8 @@ jobs:
     steps:
     - uses: actions/checkout@v4
     - name: GNU Arm Embedded Toolchain
-      uses: ryanwinter/arm-none-eabi-gcc@v2.0.4
+      uses: ryanwinter/arm-none-eabi-gcc@master
+      with:
+        release: '10.3-2021.10'
     - name: make build
       run: make build CC=arm-none-eabi-gcc
