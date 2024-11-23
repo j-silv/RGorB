@@ -249,3 +249,24 @@ void mode_5(pixel_typedef *pixels, uint16_t num_pixels){
         pixels[i].blue =  b_val;
     }
 }
+
+
+//===========================================
+// mode_6()
+//   linear acceration magitiude mode
+//     lights up white based on linear 
+//     acceration mag
+//===========================================
+void mode_6(pixel_typedef *pixels, uint16_t num_pixels){
+    uint8_t r_val = map(convert_lin(get_linear_acc_x_data()), -10, 10, 0);
+    uint8_t g_val = map(convert_lin(get_linear_acc_y_data()), -10, 10, 0);
+    uint8_t b_val = map(convert_lin(get_linear_acc_z_data()), -10, 10, 0);
+
+    uint8_t value = cutoff(map(r_val+g_val+b_val, 0, 255*3, 0), 8);
+    for(int i = 0; i<num_pixels; i++) {
+        pixels[i].red =   value;
+        pixels[i].green = value;
+        pixels[i].blue =  value;
+    }
+}
+
