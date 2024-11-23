@@ -6,69 +6,66 @@
 #include "bno055.h"
 
 
-
-float clamp(float min, float max, float val){
+//===========================================
+// clamp()
+//   takes a value and performs the following
+//   function on it:
+//     output = { min,   val < min
+//              { max,   val > max
+//              { val,   else
+//===========================================
+float clamp(float val, float min, float max){
   if(val > max) {
     return max;
   }
   else if (val < min) {
     return min;
   }
-  else {
-    return val;
-  }
+  return val;
 }
 
-float cutoff(float min, float val){
+//===========================================
+// cutoff()
+//   takes a value and performs the following
+//   function on it:
+//     output = { 0,     val < min
+//              { val,   else
+//===========================================
+float cutoff(float val, float min){
   if (val < min) {
     return 0;
   }
   return val;
 }
 
-uint8_t map(float min, float max, float offset, float val) {
-  float temp = 0; 
-  temp = clamp(min, max, val);
-  temp = (((temp - min)/(max - min))*(0xFF-offset)) + offset;
-  return temp;
+//===========================================
+// map()
+//   takes a value and does a linear scaling
+//   that scales the fullscale range of the
+//   input to the fullscale range of the
+//   output
+//-------------------------------------------
+//   scaled_val - input_min
+//   ----------------------  * (output_max - output_min) + output_min
+//    input_max - input_min
+//===========================================
+uint8_t map(float val, float input_min, float input_max, float output_min, float output_max=0xFF) {
+  float scaled_val = 0;
+  scaled_val = clamp(val, input_min, input_max);
+  scaled_val = (((scaled_val - input_min)/(input_max - input_min))*(output_max-output_min)) + output_min;
+  return scaled_val;
 }
 
+//===========================================
+// mode_1()
+//   impulse mode that lights pixels based on
+//   the magnitude of the linear acceleration
+//===========================================
 mode_1(pixel_typedef *pixels, uint16_t num_pixels){
-    for(int i = 0; i<num_pixels; i++) {
-        pixels[i].red =   map(0, 20, 0, abs(cutoff(0x8, convert_lin(get_linear_acc_x_data()))));
-        pixels[i].green = map(0, 20, 0, abs(cutoff(0x8, convert_lin(get_linear_acc_y_data()))));
-        pixels[i].blue =  map(0, 20, 0, abs(cutoff(0x8, convert_lin(get_linear_acc_z_data()))));
-    }
-}
+    uint8_t r_val = map(abs(cutoff(convert_lin(get_linear_acc_x_data()), 0x8)), 0, 20, 0);
+    uint8_t g_val = map(abs(cutoff(convert_lin(get_linear_acc_y_data()), 0x8)), 0, 20, 0);
+    uint8_t b_val = map(abs(cutoff(convert_lin(get_linear_acc_x_data()), 0x8)), 0, 20, 0);
 
-mode_2(pixel_typedef *pixels, uint16_t num_pixels){
-    for(int i = 0; i<num_pixels; i++) {
-        pixels[i].red =   map(-10, 10, 0, convert_acc(get_acc_x_data()));
-        pixels[i].green = map(-10, 10, 0, convert_acc(get_acc_y_data()));
-        pixels[i].blue =  map(-10, 10, 0, convert_acc(get_acc_z_data()));
-    }
-}
-
-mode_3(pixel_typedef *pixels, uint16_t num_pixels){
-
-    static uint8_t r_val = 0;
-    static uint8_t g_val = 0;
-    static uint8_t b_val = 0;
-
-    uint8_t inc = 4;
-
-    if (r_val < 0xFF-inc) {
-        r_val+=inc;
-    } else if (g_val < 0xFF-inc){
-        g_val+=inc;
-    } else if (b_val < 0xFF-inc){
-        b_val+=inc;
-    } else {
-        r_val = 0;
-        g_val = 0;
-        b_val = 0;
-    }
-    
     for(int i = 0; i<num_pixels; i++) {
         pixels[i].red =   r_val;
         pixels[i].green = g_val;
@@ -76,35 +73,102 @@ mode_3(pixel_typedef *pixels, uint16_t num_pixels){
     }
 }
 
-mode_4(pixel_typedef *pixels, uint16_t num_pixels){
+//===========================================
+// mode_1()
+//   impulse mode that lights pixels based on
+//   the acceleration vector
+//===========================================
+mode_2(pixel_typedef *pixels, uint16_t num_pixels){
+    uint8_t r_val = map(convert_acc(get_acc_x_data()), -10, 10, 0);
+    uint8_t g_val = map(convert_acc(get_acc_y_data()), -10, 10, 0);
+    uint8_t b_val = map(convert_acc(get_acc_z_data()), -10, 10, 0);
 
-    static uint8_t r_val = 0;
+    for(int i = 0; i<num_pixels; i++) {
+        pixels[i].red =   r_val;
+        pixels[i].green = g_val;
+        pixels[i].blue =  b_val;
+    }
+}
+
+//===========================================
+// mode_3()
+//   7-State RGB cycle (HSV)
+//     Red1 -> Yellow -> Green -> Cyan -> Blue
+//     - > Magenta -> Red2
+//===========================================
+mode_3(pixel_typedef *pixels, uint16_t num_pixels){
+    enum RBG_State {
+      RED,
+      YELLOW,
+      GREEN,
+      CYAN,
+      BLUE,
+      MAGENTA,
+    };
+
+    static uint8_t r_val = 0xFF;
     static uint8_t g_val = 0;
-    static uint8_t b_val = 255;
+    static uint8_t b_val = 0;
 
-    static uint16_t state = 0;
+    static enum HSV_STATE myVar = RED;
 
-    uint8_t inc = 1;
+    switch (HSV_STATE) {
+    	case RED:
+    	    // output value logic
+    		g_val++;
 
-    if (state == 0) {
-        r_val+=inc;
-        b_val-=inc;
-    } else if (state == 1){
-        g_val+=inc;
-        r_val-=inc;
-    } else {
-        b_val+=inc;
-        g_val-=inc;
+    	    // state transition logic
+    		if (g_val == 0xFF) {
+    			HSV_STATE = YELLOW;
+    		}
+    		break;
+    	case YELLOW:
+    	    // output value logic
+    		r_val--;
+
+    	    // state transition logic
+    		if (r_val == 0x00) {
+    			HSV_STATE = GREEN;
+    		}
+    		break;
+    	case GREEN:
+    	    // output value logic
+    		b_val++;
+
+    	    // state transition logic
+    		if (b_val == 0xFF) {
+    			HSV_STATE = CYAN;
+    		}
+    		break;
+    	case CYAN:
+    	    // output value logic
+    		g_val--;
+
+    	    // state transition logic
+    		if (g_val == 0x00) {
+    			HSV_STATE = BLUE;
+    		}
+    		break;
+    	case BLUE:
+    	    // output value logic
+    		r_val++;
+
+    	    // state transition logic
+    		if (r_val == 0xFF) {
+    			HSV_STATE = MAGENTA;
+    		}
+    		break;
+    	case MAGENTA:
+    	    // output value logic
+    		b_val--;
+
+    	    // state transition logic
+    		if (b_val == 0x00) {
+    			HSV_STATE = RED;
+    		}
+    		break;
     }
 
-    if (b_val==255){
-        state = 0;
-    } else if (r_val==255){
-        state = 1;
-    } else if (g_val==255) {
-        state = 2;
-    }
-    
     for(int i = 0; i<num_pixels; i++) {
         pixels[i].red =   r_val;
         pixels[i].green = g_val;
