@@ -4,6 +4,17 @@
 
 #include "ws2812b.h"
 #include "bno055.h"
+#include "modes.h"
+
+
+int sinc_filter_previous_values[] = {0, 0, 0, 0, 0, 0, 0, 0,
+                                     0, 0, 0, 0, 0, 0, 0, 0,
+                                     0};
+
+
+int moving_average_filter_previous_values[] = {0, 0, 0, 0, 0, 0, 0, 0,
+		                                       0, 0, 0, 0, 0, 0, 0, 0};
+
 
 
 //===========================================
@@ -56,6 +67,97 @@ uint8_t map(float val, float input_min, float input_max, float output_min) {
   scaled_val = (((scaled_val - input_min)/(input_max - input_min))*(output_max-output_min)) + output_min;
   return scaled_val;
 }
+
+//===========================================
+// lowpass_average()
+//   16 tap moving average filter
+//===========================================
+uint8_t lowpass_average(uint8_t value) {
+    const int filter_coeffients[] = {16, 16, 16, 16, 16, 16, 16, 16,
+    								 16, 16, 16, 16, 16, 16, 16, 16};
+    int filtered_value = 0;
+    uint8_t prev;
+	
+    /*
+     *    :
+     *    previous_values[6] = previous_values[5];
+     *    previous_values[5] = previous_values[4];
+     *    :
+     *    :
+     *    previous_values[1] = previous_values[0];
+     */
+    for(prev = 15; prev > 0; prev--)
+    {
+    	moving_average_filter_previous_values[prev] = moving_average_filter_previous_values[prev-1];
+    	filtered_value += moving_average_filter_previous_values[prev-1] * filter_coeffients[prev-1];
+    }
+    moving_average_filter_previous_values[0] = value;
+    filtered_value += moving_average_filter_previous_values[0] * filter_coeffients[0];
+
+    return (filtered_value >> 8); // shift back
+}
+
+
+uint8_t lowpass_sinc(uint8_t value) {
+    /*
+     *  filter coeffiecients come from:
+     *      n = -17:1:17;
+     *      bk = 0.8*sinc(0.8*n);  // lowpass in time domain
+     *      hk = hanning(17)';      // windowing function
+     *
+     *      filter_coeffients = bk .* hk * 2^8
+     */
+
+    const int filter_coeffients[] = {0, -1, 2, 0, -7, 19, -34, 46,
+    								 206,
+                                     46, -34, 19, -7, 0, 2, -1, 0};
+
+    int filtered_value = 0;
+    uint8_t prev;
+
+    /*
+     *    :
+     *    previous_values[6] = previous_values[5];
+     *    previous_values[5] = previous_values[4];
+     *    :
+     *    :
+     *    previous_values[1] = previous_values[0];
+     */
+    for(prev = 16; prev > 0; prev--)
+    {
+    	sinc_filter_previous_values[prev] = sinc_filter_previous_values[prev-1];
+    	filtered_value += sinc_filter_previous_values[prev-1] * filter_coeffients[prev-1];
+    }
+    sinc_filter_previous_values[0] = value;
+    filtered_value += sinc_filter_previous_values[0] * filter_coeffients[0];
+
+    // returning uint8_t, so zero out if would be less than 0x00 after shifting
+    if (filtered_value < 0xFF) {
+    	filtered_value = 0x00;
+    // or max out if would be more than 0xFF after shifting
+    } else if (filtered_value > 0x10000) {
+    	filtered_value = 0xFF00;
+    }
+
+    return (filtered_value >> 8); // shift back
+}
+
+void clear_prev_value(void)
+{
+    uint8_t i;
+    for(i = 0; i < 17; i++)
+    {
+    	sinc_filter_previous_values[i] = 0;
+    }
+
+    for(i = 0; i < 16; i++)
+    {
+    	moving_average_filter_previous_values[i] = 0;
+    }
+}
+
+
+
 
 //===========================================
 // mode_1()
