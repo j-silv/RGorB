@@ -1,5 +1,5 @@
 #include "ws2812b.h"
-#include "stm32f4xx.h"
+#include "stm32f446xx.h"
 #include <math.h>
 #include <stdint.h>
 

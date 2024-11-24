@@ -1,4 +1,4 @@
-#include "stm32f4xx.h"
+#include "stm32f446xx.h"
 #include "i2c.h"
 
 void I2C_READ(uint8_t dev_id, uint8_t addr, uint8_t* data) {

@@ -1,4 +1,4 @@
-#include "stm32f4xx.h"
+#include "stm32f446xx.h"
 #include "uart.h"
 
 extern uint32_t SystemCoreClock;

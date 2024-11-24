@@ -23,7 +23,7 @@
 
 .EXTRA_PREREQS := $(abspath $(lastword $(MAKEFILE_LIST))) # so that we recompile when this makefile changes
 BUILD_DIR = ./build
-SRC_DIRS = ./src ./config
+SRC_DIRS = ./src
 INC_DIRS = ./include
 TARGET_LINK = firmware.elf
 TARGET_FLASH = firmware.bin
@@ -89,7 +89,7 @@ $(BUILD_DIR)/%.o: ./src/%.c
 	@mkdir -p $(BUILD_DIR)
 	$(CC) $(CFLAGS) $(INC_FLAGS) -c $< -o $@
 
-$(BUILD_DIR)/%.o: ./config/%.s
+$(BUILD_DIR)/%.o: ./src/%.s
 	@mkdir -p $(BUILD_DIR)
 	$(CC) $(CFLAGS) $(INC_FLAGS) -c $< -o $@
 

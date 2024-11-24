@@ -1,14 +1,18 @@
 /**
   ******************************************************************************
   * @file    system_stm32f4xx.c
-  * @author  MCD Application Team
+  * @author  MCD Application Team (modified by j-silv 11/23/2024)
   * @brief   CMSIS Cortex-M4 Device Peripheral Access Layer System Source File.
   *
-  *   This file provides two functions and one global variable to be called from 
+  *   This file provides three functions and one global variable to be called from 
   *   user application:
   *      - SystemInit(): This function is called at startup just after reset and 
-  *                      before branch to main program. This call is made inside
-  *                      the "startup_stm32f4xx.s" file.
+  *                      before branch to main program. Calls following two functions.
+  *                      This call is made inside the "startup_stm32f4xx.s" file.
+  *      
+  *      - SystemCoreClockConfigure(): Setups the system clock (System clock source, PLL Multiplier
+  *                                    and Divider factors, AHB/APBx prescalers and Flash settings),
+  *                                    depending on the configuration made in the clock xls tool. 
   *
   *      - SystemCoreClock variable: Contains the core clock (HCLK), it can be used
   *                                  by the user application to setup the SysTick 
@@ -45,7 +49,7 @@
   */
 
 
-#include "stm32f4xx.h"
+#include "stm32f446xx.h"
 
 #if !defined  (HSE_VALUE) 
   #define HSE_VALUE    ((uint32_t)25000000) /*!< Default value of the External oscillator in Hz */
@@ -153,14 +157,56 @@ const uint8_t APBPrescTable[8]  = {0, 0, 0, 0, 1, 2, 3, 4};
   * @}
   */
 
+/*----------------------------------------------------------------------------
+ * SystemCoreClockConfigure: configure SystemCoreClock using HSI
+                             (HSE is not populated on Nucleo board)
+                             The PLL settings were determind from STM32CubeIDE
+                             and allow for max SystemClock frequency (180 MHz)
+ *----------------------------------------------------------------------------*/
+void SystemCoreClockConfigure(void) {
+
+  RCC->CR |= ((uint32_t)RCC_CR_HSION);                     /* Enable HSI */
+  while ((RCC->CR & RCC_CR_HSIRDY) == 0);                  /* Wait for HSI Ready */
+
+  RCC->CFGR = RCC_CFGR_SW_HSI;                             /* HSI is system clock */
+  while ((RCC->CFGR & RCC_CFGR_SWS) != RCC_CFGR_SWS_HSI);  /* Wait for HSI used as system clock */
+
+  FLASH->ACR  = (FLASH_ACR_PRFTEN     |                    /* Enable Prefetch Buffer */
+                 FLASH_ACR_ICEN       |                    /* Instruction cache enable */
+                 FLASH_ACR_DCEN       |                    /* Data cache enable */
+                 FLASH_ACR_LATENCY_5WS );                  /* Flash 5 wait state */
+
+  RCC->CFGR |= (RCC_CFGR_HPRE_DIV1  |                      /* HCLK = SYSCLK */
+                RCC_CFGR_PPRE1_DIV4 |                      /* APB1 = HCLK/4 */
+                RCC_CFGR_PPRE2_DIV2  );                    /* APB2 = HCLK/2 */
+
+  RCC->CR &= ~RCC_CR_PLLON;                                /* Disable PLL */
+
+  /* PLL configuration:  VCO = HSI/M * N,  Sysclk = VCO/P */
+  RCC->PLLCFGR = ( 8ul                    |                /* PLL_M =   8*/
+                 (180ul <<  6)            |                /* PLL_N =   180*/
+                 (  0ul << 16)            |                /* PLL_P =   2*/
+                 (RCC_PLLCFGR_PLLSRC_HSI) |                /* PLL_SRC = HSI */
+                 (  2ul << 24)            |                /* PLL_Q =    2*/
+                 (  2ul << 28)             );              /* PLL_R =   2*/
+
+  RCC->CR |= RCC_CR_PLLON;                                 /* Enable PLL */
+  while((RCC->CR & RCC_CR_PLLRDY) == 0) __NOP();           /* Wait till PLL is ready */
+
+  RCC->CFGR &= ~RCC_CFGR_SW;                               /* Select PLL as system clock source */
+  RCC->CFGR |=  RCC_CFGR_SW_PLL;
+  while ((RCC->CFGR & RCC_CFGR_SWS) != RCC_CFGR_SWS_PLL);  /* Wait till PLL is system clock src */
+}
+
+
 /** @addtogroup STM32F4xx_System_Private_Functions
   * @{
   */
 
 /**
   * @brief  Setup the microcontroller system
-  *         Initialize the FPU setting, vector table location and External memory 
-  *         configuration.
+  *         Initialize the FPU setting, vector table location, External memory 
+  *         configuration, the PLL, and update the SystemCoreClock variable
   * @param  None
   * @retval None
   */
@@ -170,6 +216,9 @@ void SystemInit(void)
   #if (__FPU_PRESENT == 1) && (__FPU_USED == 1)
     SCB->CPACR |= ((3UL << 10*2)|(3UL << 11*2));  /* set CP10 and CP11 Full Access */
   #endif
+
+  SystemCoreClockConfigure();
+  SystemCoreClockUpdate();
 
 #if defined (DATA_IN_ExtSRAM) || defined (DATA_IN_ExtSDRAM)
   SystemInit_ExtMemCtl(); 
