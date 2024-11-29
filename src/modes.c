@@ -420,7 +420,7 @@ void mode_6(pixel_typedef *pixels, uint16_t num_pixels){
 //   spin city mode
 //     lights up white based on spin power
 //===========================================
-void mode_6(pixel_typedef *pixels, uint16_t num_pixels){
+void mode_7(pixel_typedef *pixels, uint16_t num_pixels){
     uint8_t r_val = map(convert_gyro(get_gyro_x_data()), -1080, 1080, 0);
     uint8_t g_val = map(convert_gyro(get_gyro_y_data()), -1080, 1080, 0);
     uint8_t b_val = map(convert_gyro(get_gyro_z_data()), -1080, 1080, 0);
