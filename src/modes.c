@@ -415,3 +415,20 @@ void mode_6(pixel_typedef *pixels, uint16_t num_pixels){
     }
 }
 
+//===========================================
+// mode_7()
+//   spin city mode
+//     lights up white based on spin power
+//===========================================
+void mode_7(pixel_typedef *pixels, uint16_t num_pixels){
+    uint8_t r_val = map(convert_gyro(get_gyro_x_data()), -1080, 1080, 0);
+    uint8_t g_val = map(convert_gyro(get_gyro_y_data()), -1080, 1080, 0);
+    uint8_t b_val = map(convert_gyro(get_gyro_z_data()), -1080, 1080, 0);
+
+    uint8_t value = cutoff(map(r_val+g_val+b_val, 0, 255*3, 0), 8);
+    for(int i = 0; i<num_pixels; i++) {
+        pixels[i].red =   value;
+        pixels[i].green = value;
+        pixels[i].blue =  value;
+    }
+}
