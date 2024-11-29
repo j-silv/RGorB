@@ -15,7 +15,7 @@ int sinc_filter_previous_values[] = {0, 0, 0, 0, 0, 0, 0, 0,
 int moving_average_filter_previous_values[] = {0, 0, 0, 0, 0, 0, 0, 0,
 		                                       0, 0, 0, 0, 0, 0, 0, 0};
 
-
+int rc_filter_previous_values[] = {0, 0, 0, 0, 0, 0, 0};
 
 //===========================================
 // clamp()
@@ -97,6 +97,47 @@ uint8_t lowpass_average(uint8_t value) {
     return (filtered_value >> 8); // shift back
 }
 
+uint8_t lowpass_rc(uint8_t value) {
+    /*
+     *  filter coeffiecients come from:
+     *    n = 0:1:6;
+     *    bk = (1-exp(-n))*0.185;
+     *    a = round(bk .* 2^8);
+     *    b = diff(a);
+     *    c = round(b/1.63);
+     */
+
+    const int filter_coeffients[] = {99, 37, 13, 5, 2, 1, 0};
+
+    int filtered_value = 0;
+    uint8_t prev;
+
+    /*
+     *    :
+     *    previous_values[6] = previous_values[5];
+     *    previous_values[5] = previous_values[4];
+     *    :
+     *    :
+     *    previous_values[1] = previous_values[0];
+     */
+    for(prev = 6; prev > 0; prev--)
+    {
+    	rc_filter_previous_values[prev] = rc_filter_previous_values[prev-1];
+    	filtered_value += rc_filter_previous_values[prev-1] * filter_coeffients[prev-1];
+    }
+    rc_filter_previous_values[0] = value;
+    filtered_value += rc_filter_previous_values[0] * filter_coeffients[0];
+
+    // returning uint8_t, so zero out if would be less than 0x00 after shifting
+    if (filtered_value < 0xFF) {
+    	filtered_value = 0x00;
+    // or max out if would be more than 0xFF after shifting
+    } else if (filtered_value > 0x10000) {
+    	filtered_value = 0xFF00;
+    }
+
+    return (filtered_value >> 8); // shift back
+}
 
 uint8_t lowpass_sinc(uint8_t value) {
     /*
@@ -150,14 +191,16 @@ void clear_prev_value(void)
     	sinc_filter_previous_values[i] = 0;
     }
 
+    for(i = 0; i < 7; i++)
+    {
+    	rc_filter_previous_values[i] = 0;
+    }
+
     for(i = 0; i < 16; i++)
     {
     	moving_average_filter_previous_values[i] = 0;
     }
 }
-
-
-
 
 //===========================================
 // mode_1()
