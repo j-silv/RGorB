@@ -210,7 +210,7 @@ void clear_prev_value(void)
 void mode_1(pixel_typedef *pixels, uint16_t num_pixels){
     uint8_t r_val = map(abs(cutoff(convert_lin(get_linear_acc_x_data()), 0x8)), 0, 20, 0);
     uint8_t g_val = map(abs(cutoff(convert_lin(get_linear_acc_y_data()), 0x8)), 0, 20, 0);
-    uint8_t b_val = map(abs(cutoff(convert_lin(get_linear_acc_x_data()), 0x8)), 0, 20, 0);
+    uint8_t b_val = map(abs(cutoff(convert_lin(get_linear_acc_z_data()), 0x8)), 0, 20, 0);
 
     for(int i = 0; i<num_pixels; i++) {
         pixels[i].red =   r_val;
@@ -440,7 +440,7 @@ void mode_7(pixel_typedef *pixels, uint16_t num_pixels){
 void mode_8(pixel_typedef *pixels, uint16_t num_pixels){
     uint8_t r_val = map(abs(cutoff(convert_lin(get_linear_acc_x_data()), 0x8)), 0, 20, 0);
     uint8_t g_val = map(abs(cutoff(convert_lin(get_linear_acc_y_data()), 0x8)), 0, 20, 0);
-    uint8_t b_val = map(abs(cutoff(convert_lin(get_linear_acc_x_data()), 0x8)), 0, 20, 0);
+    uint8_t b_val = map(abs(cutoff(convert_lin(get_linear_acc_z_data()), 0x8)), 0, 20, 0);
 
     r_val = lowpass_rc(r_val);
     g_val = lowpass_rc(g_val);
