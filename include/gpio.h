@@ -4,10 +4,10 @@
 #include "stm32f446xx.h"
 
 typedef enum { 
-  GPIO_IN   = 0x00,    // input pin
-  GPIO_OUT  = 0x01,    // output pin
-  GPIO_AF   = 0x10,    // alternate function pin
-  GPIO_AN   = 0x11,    // analog mode pin
+  GPIO_IN   = 0b00,    // input pin
+  GPIO_OUT  = 0b01,    // output pin
+  GPIO_AF   = 0b10,    // alternate function pin
+  GPIO_AN   = 0b11,    // analog mode pin
 } gpio_mode_enum;
 
 typedef enum { 
@@ -16,21 +16,22 @@ typedef enum {
   GPIO_DOWN     // enable pulldown
 } gpio_pull_enum;
 
+// defined in Figure 19 of STM32F446RE reference manual
 typedef enum { 
-  GPIO_I2C1,     // I2C alternate function
-  GPIO_TIM1,     // TIM alternate function
-  GPIO_USART2    // UART alternate function
+  GPIO_I2C    = 4U,     // I2C alternate function
+  GPIO_TIM1   = 1U,     // TIM1 alternate function
+  GPIO_USART  = 7U,     // UART alternate function
 } gpio_af_enum;
 
 typedef enum { 
-  GPIO_A = 0x00,
-  GPIO_B = 0x01,
-  GPIO_C = 0x02,
-  GPIO_D = 0x03,
-  GPIO_E = 0x04,
-  GPIO_F = 0x05,
-  GPIO_G = 0x06,
-  GPIO_H = 0x07
+  GPIO_A = 0U,
+  GPIO_B = 1U,
+  GPIO_C = 2U,
+  GPIO_D = 3U,
+  GPIO_E = 4U,
+  GPIO_F = 5U,
+  GPIO_G = 6U,
+  GPIO_H = 7U
 } gpio_port_enum;
 
 
@@ -39,6 +40,12 @@ typedef enum {
 typedef struct {
     gpio_port_enum port;  // GPIO port (A,B,...,H)
     uint8_t pin;          // GPIO pin (0,1,...,15)
+
+    // save the pointer to the GPIO address in this struct
+    // once we init -> then for subsequent functions we don't
+    // need to keep calculating with the macro 
+    // pin we still need though to know
+    GPIO_TypeDef* reg;
 } gpio_struct;
 
 

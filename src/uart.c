@@ -1,5 +1,6 @@
 #include "stm32f446xx.h"
 #include "uart.h"
+#include "gpio.h"
 
 extern uint32_t SystemCoreClock;
 
@@ -11,21 +12,12 @@ void UART_WRITE(uint8_t* data, uint8_t size){
 }
   
 void UART_INIT(void) {
+    gpio_struct uart_gpio_tx = gpio_init(GPIO_A, 2, GPIO_AF); 
+    gpio_struct uart_gpio_rx = gpio_init(GPIO_A, 3, GPIO_AF);
 
-    // set up GPIO (pins ). on nucleo board, PA2 == USART2_TX, PA3 == USART2_RX
-    // enable clock that goes to GPIOA pins
-    RCC->AHB1ENR |= RCC_AHB1ENR_GPIOAEN;
+    gpio_af(&uart_gpio_tx, GPIO_USART);
+    gpio_af(&uart_gpio_rx, GPIO_USART);
 
-    // set as alternate function
-    GPIOA->MODER |= GPIO_MODER_MODER2_1;  
-    GPIOA->MODER |= GPIO_MODER_MODER3_1;
-
-    // set as USART alternate function (we are using AFRL because pins 0-7)
-    GPIOA->AFR[0] |= GPIO_AFRL_AFSEL2 & (7U << GPIO_AFRL_AFSEL2_Pos);
-    GPIOA->AFR[0] |= GPIO_AFRL_AFSEL3 & (7U << GPIO_AFRL_AFSEL3_Pos);
-
-    // GPIOA->OTYPER |= GPIO_OTYPER_OT2;
-    // GPIOA->OTYPER |= GPIO_OTYPER_OT3;
 
     // enable the clock that goes to the periphal
     RCC->APB1ENR |= RCC_APB1ENR_USART2EN;

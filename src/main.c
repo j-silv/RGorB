@@ -18,10 +18,14 @@ int main (void) {
 
   gpio_struct led_gpio = gpio_init(GPIO_A, 5, GPIO_OUT);
 
+  UART_INIT();
+
   while(1){
     gpio_set(&led_gpio);
+    printf("GPIO set!\n");
     Delay(1000);
     gpio_reset(&led_gpio);
+    printf("GPIO reset!\n");
     Delay(1000);
   }
 }
