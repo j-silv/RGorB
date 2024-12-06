@@ -8,20 +8,26 @@ void SysTick_Handler(void) {
 
 void Delay (uint32_t dlyTicks) {
   uint32_t curTicks;
-
   curTicks = msTicks;
   while ((msTicks - curTicks) < dlyTicks) { __NOP(); }
 }
 
+
 int main (void) {
   SysTick_Config(SystemCoreClock / 1000); // SysTick 1 msec interrupts
 
-  RCC->AHB1ENR |= RCC_AHB1ENR_GPIOAEN; // enable clock for GPIOA
-  GPIOA->MODER |= GPIO_MODER_MODER5_0;  // set as GPIO output
+  gpio_struct led_gpio = gpio_init(GPIO_A, 5, GPIO_OUT);
+
   while(1){
-    GPIOA->ODR |= GPIO_ODR_OD5;
+    gpio_set(&led_gpio);
     Delay(1000);
-    GPIOA->ODR &= ~GPIO_ODR_OD5;
+    gpio_reset(&led_gpio);
     Delay(1000);
   }
 }
+
+
+
+
+
+

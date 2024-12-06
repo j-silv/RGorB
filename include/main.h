@@ -10,6 +10,7 @@
 #include "modes.h"
 #include "ws2812b.h"
 #include "uart.h"
+#include "gpio.h"
 
 #define NUM_PIXELS 6
 #define MIN_ACC -10.0
